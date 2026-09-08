@@ -25,7 +25,6 @@
     h1 { font-size: 1.5rem; color: #38bdf8; margin-bottom: 6px; }
     p { font-size: 0.88rem; color: #94a3b8; }
 
-    /* Grid 2 Kolom */
     .grid-layout {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -104,7 +103,7 @@
       <!-- KOLOM 1: INPUT LINK ASLI -->
       <div class="card">
         <label for="input-links">Kolom 1: Link Tujuan Asli (1 link per baris)</label>
-        <textarea id="input-links" placeholder="https://slicednlve.site/v/2RwYPFPE1&#10;https://slicednlve.site/v/NiQ9SAbF1"></textarea>
+        <textarea id="input-links" placeholder="https://vlduy.site/v/kMKUjfQF1&#10;https://slicednlve.site/v/NiQ9SAbF1"></textarea>
         <div class="actions">
           <button class="btn-clear" onclick="clearInput()">Reset</button>
           <button class="btn-convert" onclick="generateBridgeLinks()">Generate Link ➔</button>
@@ -136,13 +135,22 @@
         .map(url => url.trim())
         .filter(url => url.length > 0)
         .map(url => {
-          // Bersihkan garis miring di akhir url jika ada
-          const cleanUrl = url.replace(/\/+$/, '');
-          // Ekstrak segmen terakhir URL (kode videy id)
-          const code = cleanUrl.substring(cleanUrl.lastIndexOf('/') + 1);
-          
-          return `${origin}/?v=${code}`;
-        });
+          try {
+            // Pastikan URL memiliki protokol
+            const targetUrl = url.startsWith('http') ? url : `https://${url}`;
+            const parsed = new URL(targetUrl);
+            
+            // Ambil kode ujungnya
+            const cleanPath = parsed.pathname.replace(/\/+$/, '');
+            const code = cleanPath.substring(cleanPath.lastIndexOf('/') + 1);
+            
+            // Bawa host dan videy code
+            return `${origin}/?h=${parsed.host}&v=${code}`;
+          } catch (e) {
+            return '';
+          }
+        })
+        .filter(link => link.length > 0);
 
       document.getElementById('output-links').value = results.join('\n');
       document.getElementById('input-count').textContent = `Total link input: ${lines.filter(l => l.trim()).length}`;
