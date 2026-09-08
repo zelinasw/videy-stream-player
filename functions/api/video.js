@@ -5,19 +5,28 @@ export async function onRequestGet(context) {
   const table = url.searchParams.get("t") || "videos2";
 
   if (!param) {
-    return new Response(JSON.stringify({ error: "Parameter tidak ditemukan" }), { status: 400 });
+    return new Response(JSON.stringify({ error: "Parameter tidak ditemukan" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" }
+    });
   }
 
-  // Jika input sudah berupa videy_id langsung
+  // Jika berupa ID Videy langsung (alfanumerik pendek)
   if (param.length <= 12 && !param.includes("-") && !param.includes(" ")) {
     return new Response(JSON.stringify({ video_url: `https://cdn2.videy.co/${param}.mp4` }), {
       headers: { "Content-Type": "application/json" }
     });
   }
 
-  // Ambil dari Supabase menggunakan env Cloudflare
   const supabaseUrl = env.SUPABASE_URL;
   const supabaseKey = env.SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    return new Response(JSON.stringify({ error: "Environment variable Supabase belum diatur" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
 
   try {
     const res = await fetch(`${supabaseUrl}/rest/v1/${table}?slug=eq.${encodeURIComponent(param)}&select=videy_id`, {
@@ -34,8 +43,14 @@ export async function onRequestGet(context) {
       });
     }
 
-    return new Response(JSON.stringify({ error: "Video tidak ditemukan" }), { status: 404 });
+    return new Response(JSON.stringify({ error: "Video tidak ditemukan" }), {
+      status: 404,
+      headers: { "Content-Type": "application/json" }
+    });
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+    return new Response(JSON.stringify({ error: err.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
   }
 }
