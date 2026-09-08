@@ -146,7 +146,7 @@
 
         tbody.innerHTML = data.map(item => `
           <tr>
-            <td><input type="checkbox" class="video-check" value="${item.videy_id}" data-slug="${item.slug || ''}"></td>
+            <td><input type="checkbox" class="video-check" value="${item.videy_id}"></td>
             <td>${item.id}</td>
             <td>${item.title || '-'}</td>
             <td><code>${item.videy_id}</code></td>
@@ -168,8 +168,7 @@
 
       const origin = window.location.origin;
       const links = Array.from(selected).map(cb => {
-        const target = cb.dataset.slug ? cb.dataset.slug : cb.value;
-        return `${origin}/?v=${target}`;
+        return `${origin}/?v=${cb.value}`;
       });
 
       document.getElementById('result-links').value = links.join('\n');
