@@ -105,8 +105,6 @@
       border-left: 24px solid #111111;
     }
   </style>
-  <!-- Supabase Client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -128,14 +126,9 @@
   </div>
 
   <script>
-    // GANTI DENGAN KREDENSIAL SUPABASE MILIKMU
-    const SUPABASE_URL = "ISI_SUPABASE_URL_KAMU";
-    const SUPABASE_ANON_KEY = "ISI_ANON_KEY_KAMU";
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
     const params = new URLSearchParams(window.location.search);
     const videoParam = params.get('v') || params.get('id');
-    const tableParam = params.get('t') || 'videos2'; // Default tabel videos2
+    const tableParam = params.get('t') || 'videos2';
 
     const stepGate = document.getElementById('step-gate');
     const stepPlayer = document.getElementById('step-player');
@@ -145,34 +138,31 @@
 
     let finalVideoUrl = "";
 
+    // Ambil data melalui Cloudflare Function (/api/video)
     async function resolveVideoSource() {
       if (!videoParam) return;
 
-      // 1. Jika input adalah URL lengkap
+      // 1. Jika parameter sudah berupa link lengkap langsung
       if (videoParam.startsWith('http://') || videoParam.startsWith('https://')) {
         finalVideoUrl = videoParam;
         return;
       }
 
-      // 2. Jika input berupa ID Videy langsung (biasanya alfanumerik pendek tanpa strip)
+      // 2. Jika parameter berupa videy_id langsung
       if (videoParam.length <= 12 && !videoParam.includes('-') && !videoParam.includes(' ')) {
         finalVideoUrl = `https://cdn2.videy.co/${videoParam}.mp4`;
         return;
       }
 
-      // 3. Jika input berupa slug, ambil data dari tabel Supabase
+      // 3. Ambil dari Supabase lewat Cloudflare Function (aman dari intip kredensial)
       try {
-        const { data, error } = await supabaseClient
-          .from(tableParam)
-          .select('videy_id')
-          .eq('slug', videoParam)
-          .maybeSingle();
-
-        if (data && data.videy_id) {
-          finalVideoUrl = `https://cdn2.videy.co/${data.videy_id}.mp4`;
+        const res = await fetch(`/api/video?v=${encodeURIComponent(videoParam)}&t=${encodeURIComponent(tableParam)}`);
+        const json = await res.json();
+        if (json.video_url) {
+          finalVideoUrl = json.video_url;
         }
-      } catch (e) {
-        console.error("Gagal mengambil data dari Supabase:", e);
+      } catch (err) {
+        console.error("Gagal memuat video:", err);
       }
     }
 
