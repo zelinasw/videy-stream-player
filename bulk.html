@@ -19,11 +19,31 @@
       width: 100%;
       max-width: 1080px;
     }
-    header {
-      margin-bottom: 24px;
-    }
+    header { margin-bottom: 24px; }
     h1 { font-size: 1.5rem; color: #38bdf8; margin-bottom: 6px; }
     p { font-size: 0.88rem; color: #94a3b8; }
+
+    .control-panel {
+      background: #1e293b;
+      padding: 14px 18px;
+      border-radius: 8px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid #334155;
+    }
+    .control-panel label { font-size: 0.9rem; font-weight: 600; color: #f8fafc; }
+    .control-panel select {
+      padding: 8px 12px;
+      background: #0f172a;
+      border: 1px solid #475569;
+      color: #38bdf8;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      outline: none;
+      cursor: pointer;
+    }
 
     .grid-layout {
       display: grid;
@@ -96,14 +116,24 @@
   <div class="wrapper">
     <header>
       <h1>Bridge Cloaker Dashboard</h1>
-      <p>Tempel link tujuan asli di kolom kiri untuk digenerate menjadi link jembatan ringkas di kolom kanan.</p>
+      <p>Pilih target domain player tujuan, tempel link asli, lalu generate link jembatan siap share.</p>
     </header>
+
+    <!-- PILIHAN 3 DOMAIN -->
+    <div class="control-panel">
+      <label for="target-domain">Target Domain Tujuan:</label>
+      <select id="target-domain">
+        <option value="1">1. vlduy.site (/v/ID)</option>
+        <option value="2">2. slicednlve.site (/v/ID)</option>
+        <option value="3">3. slicednive.site (/ID.mp4)</option>
+      </select>
+    </div>
 
     <div class="grid-layout">
       <!-- KOLOM 1: INPUT LINK ASLI -->
       <div class="card">
         <label for="input-links">Kolom 1: Link Tujuan Asli (1 link per baris)</label>
-        <textarea id="input-links" placeholder="https://vlduy.site/v/kMKUjfQF1&#10;https://slicednlve.site/v/NiQ9SAbF1"></textarea>
+        <textarea id="input-links" placeholder="https://vlduy.site/v/kMKUjfQF1&#10;https://slicednlve.site/v/gT02uUUA1&#10;https://slicednive.site/5kHoJKq51.mp4"></textarea>
         <div class="actions">
           <button class="btn-clear" onclick="clearInput()">Reset</button>
           <button class="btn-convert" onclick="generateBridgeLinks()">Generate Link ➔</button>
@@ -126,8 +156,9 @@
   <script>
     function generateBridgeLinks() {
       const input = document.getElementById('input-links').value.trim();
-      if (!input) return alert('Silakan masukkan minimal 1 tautan tujuan.');
+      if (!input) return alert('Silakan masukkan minimal 1 tautan.');
 
+      const targetDomainType = document.getElementById('target-domain').value;
       const lines = input.split('\n');
       const origin = window.location.origin;
 
@@ -135,22 +166,14 @@
         .map(url => url.trim())
         .filter(url => url.length > 0)
         .map(url => {
-          try {
-            // Pastikan URL memiliki protokol
-            const targetUrl = url.startsWith('http') ? url : `https://${url}`;
-            const parsed = new URL(targetUrl);
-            
-            // Ambil kode ujungnya
-            const cleanPath = parsed.pathname.replace(/\/+$/, '');
-            const code = cleanPath.substring(cleanPath.lastIndexOf('/') + 1);
-            
-            // Bawa host dan videy code
-            return `${origin}/?h=${parsed.host}&v=${code}`;
-          } catch (e) {
-            return '';
-          }
-        })
-        .filter(link => link.length > 0);
+          // Bersihkan slash ujung dan ekstensi .mp4 jika ada
+          let clean = url.replace(/\/+$/, '').replace(/\.mp4$/i, '');
+          // Ambil ID videonya saja
+          const code = clean.substring(clean.lastIndexOf('/') + 1);
+          
+          // Format ringkas: ?v=1-KODE atau ?v=2-KODE atau ?v=3-KODE
+          return `${origin}/?v=${targetDomainType}-${code}`;
+        });
 
       document.getElementById('output-links').value = results.join('\n');
       document.getElementById('input-count').textContent = `Total link input: ${lines.filter(l => l.trim()).length}`;
