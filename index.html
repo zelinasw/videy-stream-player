@@ -82,7 +82,7 @@
       transform: translate(-50%, -50%);
       width: 84px;
       height: 84px;
-      background: #e6e6e6;
+      background: #ececec;
       border-radius: 50%;
       display: flex;
       justify-content: center;
@@ -105,6 +105,8 @@
       border-left: 24px solid #111111;
     }
   </style>
+  <!-- Supabase Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -116,7 +118,7 @@
       </button>
     </div>
 
-    <!-- Halaman 2: Layar Player Penuh (Persis Gambar 2) -->
+    <!-- Halaman 2: Layar Player Penuh -->
     <div id="step-player">
       <video id="player" playsinline controls controlsList="nodownload"></video>
       <div class="center-play-btn" id="custom-play">
@@ -126,8 +128,14 @@
   </div>
 
   <script>
+    // GANTI DENGAN KREDENSIAL SUPABASE MILIKMU
+    const SUPABASE_URL = "ISI_SUPABASE_URL_KAMU";
+    const SUPABASE_ANON_KEY = "ISI_ANON_KEY_KAMU";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     const params = new URLSearchParams(window.location.search);
-    let videoUrl = params.get('v');
+    const videoParam = params.get('v') || params.get('id');
+    const tableParam = params.get('t') || 'videos2'; // Default tabel videos2
 
     const stepGate = document.getElementById('step-gate');
     const stepPlayer = document.getElementById('step-player');
@@ -135,18 +143,42 @@
     const video = document.getElementById('player');
     const customPlay = document.getElementById('custom-play');
 
-    // Decode Base64 jika URL video terenkripsi
-    if (videoUrl) {
+    let finalVideoUrl = "";
+
+    async function resolveVideoSource() {
+      if (!videoParam) return;
+
+      // 1. Jika input adalah URL lengkap
+      if (videoParam.startsWith('http://') || videoParam.startsWith('https://')) {
+        finalVideoUrl = videoParam;
+        return;
+      }
+
+      // 2. Jika input berupa ID Videy langsung (biasanya alfanumerik pendek tanpa strip)
+      if (videoParam.length <= 12 && !videoParam.includes('-') && !videoParam.includes(' ')) {
+        finalVideoUrl = `https://cdn2.videy.co/${videoParam}.mp4`;
+        return;
+      }
+
+      // 3. Jika input berupa slug, ambil data dari tabel Supabase
       try {
-        if (!videoUrl.startsWith('http')) {
-          videoUrl = atob(videoUrl);
+        const { data, error } = await supabaseClient
+          .from(tableParam)
+          .select('videy_id')
+          .eq('slug', videoParam)
+          .maybeSingle();
+
+        if (data && data.videy_id) {
+          finalVideoUrl = `https://cdn2.videy.co/${data.videy_id}.mp4`;
         }
-      } catch (e) {}
+      } catch (e) {
+        console.error("Gagal mengambil data dari Supabase:", e);
+      }
     }
 
-    // Fungsi load script iklan popunder (hanya dipanggil setelah klik)
+    resolveVideoSource();
+
     function triggerPopunder() {
-      // TEMPEL LINK SCRIPT IKLAN POPUNDER KAMU DI BAWAH INI (OPSIONAL):
       /*
       const script = document.createElement('script');
       script.src = '//url-script-popunder-kamu.com/script.js';
@@ -154,20 +186,19 @@
       */
     }
 
-    // Klik tombol biru (Pindah ke Player Fullscreen)
+    // Klik tombol biru
     btnGate.addEventListener('click', () => {
       stepGate.style.display = 'none';
       stepPlayer.style.display = 'block';
 
-      if (videoUrl) {
-        video.src = videoUrl;
+      if (finalVideoUrl) {
+        video.src = finalVideoUrl;
       }
 
-      // Jalankan iklan saat tombol ditekan
       triggerPopunder();
     });
 
-    // Kontrol tombol play bulat putih
+    // Kontrol tombol play tengah
     customPlay.addEventListener('click', () => {
       customPlay.style.display = 'none';
       video.play();
