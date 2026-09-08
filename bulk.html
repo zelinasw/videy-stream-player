@@ -3,183 +3,162 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bulk Sharelink Generator</title>
+  <title>Bridge Link Generator - Dashboard</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background-color: #0b0f19;
       color: #e2e8f0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      padding: 24px 16px;
+      padding: 24px;
+      min-height: 100vh;
       display: flex;
       justify-content: center;
     }
-    .container { width: 100%; max-width: 900px; }
-    h1 { font-size: 1.4rem; color: #38bdf8; margin-bottom: 6px; }
-    p { font-size: 0.85rem; color: #94a3b8; margin-bottom: 18px; }
+    .wrapper {
+      width: 100%;
+      max-width: 1080px;
+    }
+    header {
+      margin-bottom: 24px;
+    }
+    h1 { font-size: 1.5rem; color: #38bdf8; margin-bottom: 6px; }
+    p { font-size: 0.88rem; color: #94a3b8; }
 
-    .control-panel {
+    /* Grid 2 Kolom */
+    .grid-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 768px) {
+      .grid-layout { grid-template-columns: 1fr; }
+    }
+
+    .card {
       background: #1e293b;
-      padding: 16px;
-      border-radius: 8px;
-      margin-bottom: 16px;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 18px;
       display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      align-items: center;
+      flex-direction: column;
     }
-    select, button {
-      padding: 8px 14px;
-      background: #0f172a;
-      border: 1px solid #334155;
-      color: #fff;
-      border-radius: 6px;
-      font-size: 0.9rem;
-    }
-    select { cursor: pointer; }
-    button {
-      background: #0284c7;
-      border: none;
-      cursor: pointer;
+    .card label {
       font-weight: 600;
-    }
-    button:hover { background: #0369a1; }
-    .btn-green { background: #16a34a; }
-    .btn-green:hover { background: #15803d; }
-
-    .table-container {
-      background: #1e293b;
-      border-radius: 8px;
-      overflow-x: auto;
-      max-height: 420px;
-      border: 1px solid #334155;
-    }
-    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
-    th, td { padding: 10px 14px; border-bottom: 1px solid #334155; }
-    th { background: #0f172a; position: sticky; top: 0; color: #94a3b8; }
-    tr:hover { background: #283548; }
-
-    .result-box {
-      margin-top: 18px;
-      background: #1e293b;
-      padding: 16px;
-      border-radius: 8px;
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+      color: #cbd5e1;
     }
     textarea {
       width: 100%;
-      height: 120px;
+      height: 320px;
       background: #0f172a;
       border: 1px solid #334155;
-      color: #38bdf8;
+      color: #f8fafc;
+      border-radius: 8px;
+      padding: 12px;
       font-family: monospace;
-      padding: 10px;
-      border-radius: 6px;
+      font-size: 0.85rem;
       resize: vertical;
+      outline: none;
+    }
+    textarea:focus { border-color: #38bdf8; }
+    #output-links { color: #38bdf8; }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    button {
+      flex: 1;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    button:active { opacity: 0.8; }
+    .btn-convert { background: #0284c7; color: #fff; }
+    .btn-copy { background: #16a34a; color: #fff; }
+    .btn-clear { background: #475569; color: #fff; flex: 0.4; }
+
+    .status-badge {
       margin-top: 8px;
+      font-size: 0.8rem;
+      color: #94a3b8;
     }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <h1>Bulk Sharelink Selector</h1>
-    <p>Pilih tabel, klik tampilkan data, centang video, lalu generate link siap share.</p>
+  <div class="wrapper">
+    <header>
+      <h1>Bridge Cloaker Dashboard</h1>
+      <p>Tempel link tujuan asli di kolom kiri untuk digenerate menjadi link jembatan aman di kolom kanan.</p>
+    </header>
 
-    <div class="control-panel">
-      <label for="table-select">Tabel:</label>
-      <select id="table-select">
-        <option value="videos2" selected>videos2</option>
-        <option value="videos1">videos1</option>
-      </select>
+    <div class="grid-layout">
+      <!-- KOLOM 1: INPUT LINK ASLI -->
+      <div class="card">
+        <label for="input-links">Kolom 1: Link Tujuan Asli (1 link per baris)</label>
+        <textarea id="input-links" placeholder="https://cdn2.aceimg.it/video1&#10;https://target-player.com/watch?id=123"></textarea>
+        <div class="actions">
+          <button class="btn-clear" onclick="clearInput()">Reset</button>
+          <button class="btn-convert" onclick="generateBridgeLinks()">Generate Link ➔</button>
+        </div>
+        <div class="status-badge" id="input-count">Total link input: 0</div>
+      </div>
 
-      <button onclick="fetchVideos()">Tampilkan Video</button>
-      <button class="btn-green" onclick="generateBulkLinks()">Generate Link Terpilih</button>
-    </div>
-
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th width="40"><input type="checkbox" id="check-all" onclick="toggleSelectAll(this)" /></th>
-            <th>ID</th>
-            <th>Judul</th>
-            <th>Videy ID</th>
-            <th>Slug</th>
-          </tr>
-        </thead>
-        <tbody id="video-list">
-          <tr>
-            <td colspan="5" style="text-align:center; color:#64748b; padding: 24px;">
-              Klik tombol "Tampilkan Video" untuk memuat data.
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="result-box">
-      <label>Link Hasil Generate:</label>
-      <textarea id="result-links" readonly placeholder="Link yang dicentang akan keluar di sini..."></textarea>
-      <button class="btn-green" style="margin-top:8px;" onclick="copyLinks()">Salin Semua Link</button>
+      <!-- KOLOM 2: OUTPUT LINK JEMBATAN -->
+      <div class="card">
+        <label for="output-links">Kolom 2: Hasil Link Jembatan (Siap Sebar)</label>
+        <textarea id="output-links" readonly placeholder="Link hasil generate akan muncul otomatis di sini..."></textarea>
+        <div class="actions">
+          <button class="btn-copy" onclick="copyResults()">Salin Semua Link</button>
+        </div>
+        <div class="status-badge" id="output-count">Total link hasil: 0</div>
+      </div>
     </div>
   </div>
 
   <script>
-    async function fetchVideos() {
-      const table = document.getElementById('table-select').value;
-      const tbody = document.getElementById('video-list');
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Memuat data...</td></tr>';
+    function generateBridgeLinks() {
+      const input = document.getElementById('input-links').value.trim();
+      if (!input) return alert('Silakan masukkan minimal 1 tautan tujuan.');
 
-      try {
-        const res = await fetch(`/api/list?t=${table}`);
-        const data = await res.json();
-
-        if (!Array.isArray(data)) {
-          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#f87171; padding:20px;">Error: ${data.error || 'Gagal memuat'}</td></tr>`;
-          return;
-        }
-
-        if (data.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Tabel kosong.</td></tr>';
-          return;
-        }
-
-        tbody.innerHTML = data.map(item => `
-          <tr>
-            <td><input type="checkbox" class="video-check" value="${item.videy_id}"></td>
-            <td>${item.id}</td>
-            <td>${item.title || '-'}</td>
-            <td><code>${item.videy_id}</code></td>
-            <td>${item.slug || '-'}</td>
-          </tr>
-        `).join('');
-      } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#f87171; padding:20px;">Gagal memuat data.</td></tr>`;
-      }
-    }
-
-    function toggleSelectAll(master) {
-      document.querySelectorAll('.video-check').forEach(cb => cb.checked = master.checked);
-    }
-
-    function generateBulkLinks() {
-      const selected = document.querySelectorAll('.video-check:checked');
-      if (selected.length === 0) return alert('Centang minimal 1 video terlebih dahulu.');
-
+      const lines = input.split('\n');
       const origin = window.location.origin;
-      const links = Array.from(selected).map(cb => {
-        return `${origin}/?v=${cb.value}`;
-      });
 
-      document.getElementById('result-links').value = links.join('\n');
+      const results = lines
+        .map(url => url.trim())
+        .filter(url => url.length > 0)
+        .map(url => {
+          // Samarkan link asli menggunakan Base64
+          const safeParam = btoa(url);
+          return `${origin}/?to=${safeParam}`;
+        });
+
+      document.getElementById('output-links').value = results.join('\n');
+      document.getElementById('input-count').textContent = `Total link input: ${lines.filter(l => l.trim()).length}`;
+      document.getElementById('output-count').textContent = `Total link hasil: ${results.length}`;
     }
 
-    function copyLinks() {
-      const output = document.getElementById('result-links');
-      if (!output.value) return;
-      output.select();
-      navigator.clipboard.writeText(output.value);
-      alert('Semua link berhasil disalin!');
+    function copyResults() {
+      const outputArea = document.getElementById('output-links');
+      if (!outputArea.value) return;
+      outputArea.select();
+      navigator.clipboard.writeText(outputArea.value);
+      alert('Semua link jembatan berhasil disalin!');
+    }
+
+    function clearInput() {
+      document.getElementById('input-links').value = '';
+      document.getElementById('output-links').value = '';
+      document.getElementById('input-count').textContent = 'Total link input: 0';
+      document.getElementById('output-count').textContent = 'Total link hasil: 0';
     }
   </script>
 </body>
