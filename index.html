@@ -63,25 +63,24 @@
   </div>
 
   <script>
-    const params = new URLSearchParams(window.location.search);
-    const targetParam = params.get('to') || params.get('v');
-    let targetUrl = "";
+    // Domain landing player tujuan
+    const TARGET_BASE_URL = "https://slicednlve.site/v/";
 
-    if (targetParam) {
-      try {
-        // Decode dari format Base64
-        targetUrl = atob(targetParam);
-      } catch (e) {
-        // Fallback jika tidak ter-encode
-        targetUrl = targetParam;
-      }
-    }
+    const params = new URLSearchParams(window.location.search);
+    const videoCode = params.get('v') || params.get('to');
 
     document.getElementById('btn-redirect').addEventListener('click', () => {
-      if (targetUrl) {
-        window.location.href = targetUrl;
+      if (!videoCode) {
+        alert("Tautan video tidak ditemukan atau tidak valid.");
+        return;
+      }
+
+      // Jika parameter berisi URL utuh (fallback)
+      if (videoCode.startsWith('http://') || videoCode.startsWith('https://')) {
+        window.location.href = videoCode;
       } else {
-        alert("Tautan tujuan tidak valid atau sudah kadaluarsa.");
+        // Redirect ke link tujuan asli berdasarkan kodenya
+        window.location.href = `${TARGET_BASE_URL}${videoCode}`;
       }
     });
   </script>
