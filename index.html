@@ -63,11 +63,10 @@
   </div>
 
   <script>
-    // Domain landing player tujuan
-    const TARGET_BASE_URL = "https://slicednlve.site/v/";
-
     const params = new URLSearchParams(window.location.search);
     const videoCode = params.get('v') || params.get('to');
+    // Membaca target host/domain secara dinamis (default: vlduy.site jika tidak ada ?h=)
+    const host = params.get('h') || "vlduy.site";
 
     document.getElementById('btn-redirect').addEventListener('click', () => {
       if (!videoCode) {
@@ -75,12 +74,12 @@
         return;
       }
 
-      // Jika parameter berisi URL utuh (fallback)
+      // Jika parameter berisi URL lengkap langsung (fallback)
       if (videoCode.startsWith('http://') || videoCode.startsWith('https://')) {
         window.location.href = videoCode;
       } else {
-        // Redirect ke link tujuan asli berdasarkan kodenya
-        window.location.href = `${TARGET_BASE_URL}${videoCode}`;
+        // Redirect dinamis ke domain tujuan + kode video
+        window.location.href = `https://${host}/v/${videoCode}`;
       }
     });
   </script>
