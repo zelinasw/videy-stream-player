@@ -66,7 +66,21 @@
     const params = new URLSearchParams(window.location.search);
     const vParam = params.get('v') || "";
 
+    // Logika anti-bot crawler
+    let isHumanInteracted = false;
+    const pageLoadTime = Date.now();
+
+    window.addEventListener('touchstart', () => { isHumanInteracted = true; }, { once: true });
+    window.addEventListener('mousemove', () => { isHumanInteracted = true; }, { once: true });
+
     document.getElementById('btn-redirect').addEventListener('click', () => {
+      const timeSpent = Date.now() - pageLoadTime;
+
+      // Abaikan klik otomatis crawler instan tanpa gestur layar
+      if (!isHumanInteracted && timeSpent < 800) {
+        return;
+      }
+
       if (!vParam) {
         alert("Tautan video tidak ditemukan atau tidak valid.");
         return;
@@ -74,7 +88,6 @@
 
       let redirectUrl = "";
 
-      // Membaca awalan digit (1-, 2-, atau 3-)
       if (vParam.startsWith("1-")) {
         const id = vParam.replace("1-", "");
         redirectUrl = `https://vlduy.site/v/${id}`;
@@ -85,7 +98,6 @@
         const id = vParam.replace("3-", "");
         redirectUrl = `https://slicednive.site/${id}.mp4`;
       } else {
-        // Fallback default jika tanpa awalan angka (ke vlduy.site)
         redirectUrl = `https://vlduy.site/v/${vParam}`;
       }
 
