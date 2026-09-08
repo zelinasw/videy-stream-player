@@ -97,14 +97,14 @@
   <div class="wrapper">
     <header>
       <h1>Bridge Cloaker Dashboard</h1>
-      <p>Tempel link tujuan asli di kolom kiri untuk digenerate menjadi link jembatan aman di kolom kanan.</p>
+      <p>Tempel link tujuan asli di kolom kiri untuk digenerate menjadi link jembatan ringkas di kolom kanan.</p>
     </header>
 
     <div class="grid-layout">
       <!-- KOLOM 1: INPUT LINK ASLI -->
       <div class="card">
         <label for="input-links">Kolom 1: Link Tujuan Asli (1 link per baris)</label>
-        <textarea id="input-links" placeholder="https://cdn2.aceimg.it/video1&#10;https://target-player.com/watch?id=123"></textarea>
+        <textarea id="input-links" placeholder="https://slicednlve.site/v/2RwYPFPE1&#10;https://slicednlve.site/v/NiQ9SAbF1"></textarea>
         <div class="actions">
           <button class="btn-clear" onclick="clearInput()">Reset</button>
           <button class="btn-convert" onclick="generateBridgeLinks()">Generate Link ➔</button>
@@ -136,9 +136,12 @@
         .map(url => url.trim())
         .filter(url => url.length > 0)
         .map(url => {
-          // Samarkan link asli menggunakan Base64
-          const safeParam = btoa(url);
-          return `${origin}/?to=${safeParam}`;
+          // Bersihkan garis miring di akhir url jika ada
+          const cleanUrl = url.replace(/\/+$/, '');
+          // Ekstrak segmen terakhir URL (kode videy id)
+          const code = cleanUrl.substring(cleanUrl.lastIndexOf('/') + 1);
+          
+          return `${origin}/?v=${code}`;
         });
 
       document.getElementById('output-links').value = results.join('\n');
