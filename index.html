@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Video Player</title>
+  <title>Lanjutkan Menonton</title>
+  <meta name="robots" content="noindex, nofollow" />
   <style>
     * {
       box-sizing: border-box;
@@ -23,16 +24,9 @@
     .container {
       width: 100%;
       height: 100%;
-      position: relative;
-    }
-
-    /* GAMBAR 1: TOMBOL BIRU BERSIH TOTAL */
-    #step-gate {
       display: flex;
       justify-content: center;
       align-items: center;
-      width: 100%;
-      height: 100%;
       padding: 20px;
     }
 
@@ -51,157 +45,44 @@
       line-height: 1.35;
       box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
       -webkit-tap-highlight-color: transparent;
+      transition: transform 0.1s ease, opacity 0.15s ease;
     }
 
     .btn-blue:active {
       transform: scale(0.98);
       opacity: 0.9;
     }
-
-    /* GAMBAR 2: FULLSCREEN PLAYER HITAM BERSIH */
-    #step-player {
-      display: none;
-      width: 100%;
-      height: 100%;
-      background: #000000;
-      position: relative;
-    }
-
-    video {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      background: #000000;
-    }
-
-    /* Tombol Play Bulat Putih Tengah */
-    .center-play-btn {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 84px;
-      height: 84px;
-      background: #ececec;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-      z-index: 10;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
-    }
-
-    .center-play-btn:active {
-      transform: translate(-50%, -50%) scale(0.92);
-    }
-
-    .triangle-icon {
-      width: 0;
-      height: 0;
-      margin-left: 6px;
-      border-top: 15px solid transparent;
-      border-bottom: 15px solid transparent;
-      border-left: 24px solid #111111;
-    }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <!-- Halaman 1: Tampilan Gate Tombol Biru -->
-    <div id="step-gate">
-      <button class="btn-blue" id="btn-gate">
-        Klik untuk melanjutkan nonton<br>video
-      </button>
-    </div>
-
-    <!-- Halaman 2: Layar Player Penuh -->
-    <div id="step-player">
-      <video id="player" playsinline controls controlsList="nodownload"></video>
-      <div class="center-play-btn" id="custom-play">
-        <div class="triangle-icon"></div>
-      </div>
-    </div>
+    <button class="btn-blue" id="btn-redirect">
+      Klik untuk melanjutkan nonton<br>video
+    </button>
   </div>
 
   <script>
     const params = new URLSearchParams(window.location.search);
-    const videoParam = params.get('v') || params.get('id');
-    const tableParam = params.get('t') || 'videos2';
+    const targetParam = params.get('to') || params.get('v');
+    let targetUrl = "";
 
-    const stepGate = document.getElementById('step-gate');
-    const stepPlayer = document.getElementById('step-player');
-    const btnGate = document.getElementById('btn-gate');
-    const video = document.getElementById('player');
-    const customPlay = document.getElementById('custom-play');
-
-    let finalVideoUrl = "";
-
-    // Ambil data melalui Cloudflare Function (/api/video)
-    async function resolveVideoSource() {
-      if (!videoParam) return;
-
-      // 1. Jika parameter sudah berupa link lengkap langsung
-      if (videoParam.startsWith('http://') || videoParam.startsWith('https://')) {
-        finalVideoUrl = videoParam;
-        return;
-      }
-
-      // 2. Jika parameter berupa videy_id langsung
-      if (videoParam.length <= 12 && !videoParam.includes('-') && !videoParam.includes(' ')) {
-        finalVideoUrl = `https://cdn2.videy.co/${videoParam}.mp4`;
-        return;
-      }
-
-      // 3. Ambil dari Supabase lewat Cloudflare Function (aman dari intip kredensial)
+    if (targetParam) {
       try {
-        const res = await fetch(`/api/video?v=${encodeURIComponent(videoParam)}&t=${encodeURIComponent(tableParam)}`);
-        const json = await res.json();
-        if (json.video_url) {
-          finalVideoUrl = json.video_url;
-        }
-      } catch (err) {
-        console.error("Gagal memuat video:", err);
+        // Decode dari format Base64
+        targetUrl = atob(targetParam);
+      } catch (e) {
+        // Fallback jika tidak ter-encode
+        targetUrl = targetParam;
       }
     }
 
-    resolveVideoSource();
-
-    function triggerPopunder() {
-      /*
-      const script = document.createElement('script');
-      script.src = '//url-script-popunder-kamu.com/script.js';
-      document.body.appendChild(script);
-      */
-    }
-
-    // Klik tombol biru
-    btnGate.addEventListener('click', () => {
-      stepGate.style.display = 'none';
-      stepPlayer.style.display = 'block';
-
-      if (finalVideoUrl) {
-        video.src = finalVideoUrl;
+    document.getElementById('btn-redirect').addEventListener('click', () => {
+      if (targetUrl) {
+        window.location.href = targetUrl;
+      } else {
+        alert("Tautan tujuan tidak valid atau sudah kadaluarsa.");
       }
-
-      triggerPopunder();
-    });
-
-    // Kontrol tombol play tengah
-    customPlay.addEventListener('click', () => {
-      customPlay.style.display = 'none';
-      video.play();
-    });
-
-    video.addEventListener('pause', () => {
-      if (!video.ended) {
-        customPlay.style.display = 'flex';
-      }
-    });
-
-    video.addEventListener('play', () => {
-      customPlay.style.display = 'none';
     });
   </script>
 </body>
