@@ -64,23 +64,32 @@
 
   <script>
     const params = new URLSearchParams(window.location.search);
-    const videoCode = params.get('v') || params.get('to');
-    // Membaca target host/domain secara dinamis (default: vlduy.site jika tidak ada ?h=)
-    const host = params.get('h') || "vlduy.site";
+    const vParam = params.get('v') || "";
 
     document.getElementById('btn-redirect').addEventListener('click', () => {
-      if (!videoCode) {
+      if (!vParam) {
         alert("Tautan video tidak ditemukan atau tidak valid.");
         return;
       }
 
-      // Jika parameter berisi URL lengkap langsung (fallback)
-      if (videoCode.startsWith('http://') || videoCode.startsWith('https://')) {
-        window.location.href = videoCode;
+      let redirectUrl = "";
+
+      // Membaca awalan digit (1-, 2-, atau 3-)
+      if (vParam.startsWith("1-")) {
+        const id = vParam.replace("1-", "");
+        redirectUrl = `https://vlduy.site/v/${id}`;
+      } else if (vParam.startsWith("2-")) {
+        const id = vParam.replace("2-", "");
+        redirectUrl = `https://slicednlve.site/v/${id}`;
+      } else if (vParam.startsWith("3-")) {
+        const id = vParam.replace("3-", "");
+        redirectUrl = `https://slicednive.site/${id}.mp4`;
       } else {
-        // Redirect dinamis ke domain tujuan + kode video
-        window.location.href = `https://${host}/v/${videoCode}`;
+        // Fallback default jika tanpa awalan angka (ke vlduy.site)
+        redirectUrl = `https://vlduy.site/v/${vParam}`;
       }
+
+      window.location.href = redirectUrl;
     });
   </script>
 </body>
