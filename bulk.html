@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bulk Sharelink Selector</title>
+  <title>Bulk Sharelink Generator</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -14,10 +14,7 @@
       display: flex;
       justify-content: center;
     }
-    .container {
-      width: 100%;
-      max-width: 900px;
-    }
+    .container { width: 100%; max-width: 900px; }
     h1 { font-size: 1.4rem; color: #38bdf8; margin-bottom: 6px; }
     p { font-size: 0.85rem; color: #94a3b8; margin-bottom: 18px; }
 
@@ -31,7 +28,7 @@
       gap: 12px;
       align-items: center;
     }
-    select, button, input[type="text"] {
+    select, button {
       padding: 8px 14px;
       background: #0f172a;
       border: 1px solid #334155;
@@ -57,22 +54,9 @@
       max-height: 420px;
       border: 1px solid #334155;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      font-size: 0.85rem;
-    }
-    th, td {
-      padding: 10px 14px;
-      border-bottom: 1px solid #334155;
-    }
-    th {
-      background: #0f172a;
-      position: sticky;
-      top: 0;
-      color: #94a3b8;
-    }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+    th, td { padding: 10px 14px; border-bottom: 1px solid #334155; }
+    th { background: #0f172a; position: sticky; top: 0; color: #94a3b8; }
     tr:hover { background: #283548; }
 
     .result-box {
@@ -94,13 +78,12 @@
       margin-top: 8px;
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
   <div class="container">
     <h1>Bulk Sharelink Selector</h1>
-    <p>Centang video yang ingin dibuatkan tautan share-nya secara instan dari database Supabase.</p>
+    <p>Pilih tabel, klik tampilkan data, centang video, lalu generate link siap share.</p>
 
     <div class="control-panel">
       <label for="table-select">Tabel:</label>
@@ -135,61 +118,48 @@
     </div>
 
     <div class="result-box">
-      <label>Link Hasil Generate Siap Share:</label>
+      <label>Link Hasil Generate:</label>
       <textarea id="result-links" readonly placeholder="Link yang dicentang akan keluar di sini..."></textarea>
       <button class="btn-green" style="margin-top:8px;" onclick="copyLinks()">Salin Semua Link</button>
     </div>
   </div>
 
   <script>
-    // MASUKKAN KREDENSIAL SUPABASE KAMU DI SINI
-    const SUPABASE_URL = "ISI_SUPABASE_URL_KAMU";
-    const SUPABASE_ANON_KEY = "ISI_ANON_KEY_KAMU";
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    let loadedVideos = [];
-
     async function fetchVideos() {
-      const tableName = document.getElementById('table-select').value;
+      const table = document.getElementById('table-select').value;
       const tbody = document.getElementById('video-list');
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Memuat data...</td></tr>';
 
-      const { data, error } = await supabaseClient
-        .from(tableName)
-        .select('id, title, videy_id, slug')
-        .order('id', { ascending: false })
-        .limit(100);
+      try {
+        const res = await fetch(`/api/list?t=${table}`);
+        const data = await res.json();
 
-      if (error) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#f87171; padding:20px;">Gagal: ${error.message}</td></tr>`;
-        return;
+        if (!Array.isArray(data)) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#f87171; padding:20px;">Error: ${data.error || 'Gagal memuat'}</td></tr>`;
+          return;
+        }
+
+        if (data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Tabel kosong.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = data.map(item => `
+          <tr>
+            <td><input type="checkbox" class="video-check" value="${item.videy_id}" data-slug="${item.slug || ''}"></td>
+            <td>${item.id}</td>
+            <td>${item.title || '-'}</td>
+            <td><code>${item.videy_id}</code></td>
+            <td>${item.slug || '-'}</td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#f87171; padding:20px;">Gagal memuat data.</td></tr>`;
       }
-
-      loadedVideos = data;
-      renderTable(data);
-    }
-
-    function renderTable(videos) {
-      const tbody = document.getElementById('video-list');
-      if (!videos || videos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Data kosong.</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = videos.map(item => `
-        <tr>
-          <td><input type="checkbox" class="video-check" value="${item.videy_id}" data-slug="${item.slug || ''}"></td>
-          <td>${item.id}</td>
-          <td>${item.title || '-'}</td>
-          <td><code>${item.videy_id}</code></td>
-          <td>${item.slug || '-'}</td>
-        </tr>
-      `).join('');
     }
 
     function toggleSelectAll(master) {
-      const checkboxes = document.querySelectorAll('.video-check');
-      checkboxes.forEach(cb => cb.checked = master.checked);
+      document.querySelectorAll('.video-check').forEach(cb => cb.checked = master.checked);
     }
 
     function generateBulkLinks() {
@@ -198,8 +168,8 @@
 
       const origin = window.location.origin;
       const links = Array.from(selected).map(cb => {
-        const videyId = cb.value;
-        return `${origin}/?v=${videyId}`;
+        const target = cb.dataset.slug ? cb.dataset.slug : cb.value;
+        return `${origin}/?v=${target}`;
       });
 
       document.getElementById('result-links').value = links.join('\n');
@@ -210,7 +180,7 @@
       if (!output.value) return;
       output.select();
       navigator.clipboard.writeText(output.value);
-      alert('Semua link terpilih berhasil disalin!');
+      alert('Semua link berhasil disalin!');
     }
   </script>
 </body>
