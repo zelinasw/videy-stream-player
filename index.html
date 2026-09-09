@@ -66,7 +66,7 @@
     const params = new URLSearchParams(window.location.search);
     const vParam = params.get('v') || "";
 
-    // Logika anti-bot crawler
+    // Proteksi anti-bot crawler
     let isHumanInteracted = false;
     const pageLoadTime = Date.now();
 
@@ -76,7 +76,7 @@
     document.getElementById('btn-redirect').addEventListener('click', () => {
       const timeSpent = Date.now() - pageLoadTime;
 
-      // Abaikan klik otomatis crawler instan tanpa gestur layar
+      // Abaikan bot instan tanpa sentuhan layar
       if (!isHumanInteracted && timeSpent < 800) {
         return;
       }
@@ -97,6 +97,9 @@
       } else if (vParam.startsWith("3-")) {
         const id = vParam.replace("3-", "");
         redirectUrl = `https://slicednive.site/${id}.mp4`;
+      } else if (vParam.startsWith("4-")) {
+        const id = vParam.replace("4-", "");
+        redirectUrl = `https://vidco.site/${id}.mp4`;
       } else {
         redirectUrl = `https://vlduy.site/v/${vParam}`;
       }
