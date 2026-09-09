@@ -119,13 +119,14 @@
       <p>Pilih target domain player tujuan, tempel link asli, lalu generate link jembatan siap share.</p>
     </header>
 
-    <!-- PILIHAN 3 DOMAIN -->
+    <!-- PILIHAN 4 DOMAIN -->
     <div class="control-panel">
       <label for="target-domain">Target Domain Tujuan:</label>
       <select id="target-domain">
         <option value="1">1. vlduy.site (/v/ID)</option>
         <option value="2">2. slicednlve.site (/v/ID)</option>
         <option value="3">3. slicednive.site (/ID.mp4)</option>
+        <option value="4">4. vidco.site (/ID.mp4)</option>
       </select>
     </div>
 
@@ -133,7 +134,7 @@
       <!-- KOLOM 1: INPUT LINK ASLI -->
       <div class="card">
         <label for="input-links">Kolom 1: Link Tujuan Asli (1 link per baris)</label>
-        <textarea id="input-links" placeholder="https://vlduy.site/v/kMKUjfQF1&#10;https://slicednlve.site/v/gT02uUUA1&#10;https://slicednive.site/5kHoJKq51.mp4"></textarea>
+        <textarea id="input-links" placeholder="https://vlduy.site/v/kMKUjfQF1&#10;https://slicednlve.site/v/gT02uUUA1&#10;https://slicednive.site/5kHoJKq51.mp4&#10;https://vidco.site/0U7TGpzO1.mp4"></textarea>
         <div class="actions">
           <button class="btn-clear" onclick="clearInput()">Reset</button>
           <button class="btn-convert" onclick="generateBridgeLinks()">Generate Link ➔</button>
@@ -166,12 +167,8 @@
         .map(url => url.trim())
         .filter(url => url.length > 0)
         .map(url => {
-          // Bersihkan slash ujung dan ekstensi .mp4 jika ada
           let clean = url.replace(/\/+$/, '').replace(/\.mp4$/i, '');
-          // Ambil ID videonya saja
           const code = clean.substring(clean.lastIndexOf('/') + 1);
-          
-          // Format ringkas: ?v=1-KODE atau ?v=2-KODE atau ?v=3-KODE
           return `${origin}/?v=${targetDomainType}-${code}`;
         });
 
